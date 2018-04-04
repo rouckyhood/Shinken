@@ -1,9 +1,6 @@
-sudo chmod o+x install.sh
-
-
 #!/bin/bash
 
-read -p 'Entrez le nom de l entité : ' nom
+read -p 'Entrez le nom de l entitÃ© : ' nom
 
 #sudo apt-get update -y
 #sudo apt-get dist-upgrade -y
