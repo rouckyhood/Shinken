@@ -109,7 +109,7 @@ sudo cat > /etc/shinken/hostgroups/$nom.cfg << EOF
 }
 define service {
     service_description     CPU Usage
-    check_command           check_ncpa!-t 'zenadmin' -P 5693 -M cpu/percent -w 80 -c 90 -q 'aggregate=avg'
+    check_command           check_ncpa!-t 'public' -P 5693 -M cpu/percent -w 80 -c 90 -q 'aggregate=avg'
     max_check_attempts      5
     check_interval          5
     hostgroup_name          $nom
@@ -123,7 +123,7 @@ define service {
 
 define service {
     service_description     Memory Usage
-    check_command           check_ncpa!-t 'zenadmin' -P 5693 -M memory/virtual -w 80 -c 90 -u G
+    check_command           check_ncpa!-t 'public' -P 5693 -M memory/virtual -w 80 -c 90 -u G
     max_check_attempts      5
     check_interval          5
     retry_interval          1
@@ -137,7 +137,7 @@ define service {
 
 define service {
     service_description     Disk Usage
-    check_command           check_ncpa!-t 'zenadmin' -M 'disk/logical/C:|/free' --warning 25: --critical 10: -u G
+    check_command           check_ncpa!-t 'public' -M 'disk/logical/C:|/free' --warning 25: --critical 10: -u G
     max_check_attempts      5
     check_interval          5
     retry_interval          1
