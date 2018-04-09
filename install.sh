@@ -1,3 +1,6 @@
+sudo chmod o+x install.sh
+
+
 #!/bin/bash
 
 read -p 'Entrez le nom de l entité : ' nom
@@ -137,3 +140,34 @@ sudo systemctl restart shinken-scheduler.service
 sudo systemctl restart shinken-broker.service
 sudo systemctl restart shinken-receiver.service
 sudo systemctl restart shinken.service
+
+
+sudo apt-get -y install apache2 php php-gd php-xml rrdtool librrds-perl snmp snmpd libpng-dev zlib1g-dev
+sudo git clone https://github.com/lingej/pnp4nagios.git
+cd pnp4nagios
+sudo ./configure --enable-sockets --with-nagios-user=shinken --with-nagios-group=shinken  --with-httpd-conf=/etc/apache2/sites-available
+sudo make all
+sudo make fullinstall
+
+## modif
+sudo sed -i '20d' /etc/httpd/conf.d/pnp4nagios.conf
+sudo sed -i '20d' /etc/httpd/conf.d/pnp4nagios.conf
+sudo sed -i '20d' /etc/httpd/conf.d/pnp4nagios.conf
+sudo sed -i '20d' /etc/httpd/conf.d/pnp4nagios.conf
+
+
+sudo cp -a /etc/httpd/conf.d/pnp4nagios.conf /etc/apache2/sites-available/
+sudo a2dissite 000-default.conf && sudo a2ensite pnp4nagios.conf && sudo a2enmod rewrite
+sudo systemctl enable apache2
+sudo systemctl start apache2
+sudo mv /usr/local/pnp4nagios/share/install.php /usr/local/pnp4nagios/share/install.php.old
+
+sudo shinken install npcdmod
+sudo shinken install ui-pnp
+
+sudo sed -i '90d' /etc/shinken/modules/webui2.cfg
+sudo sed -i '90i    modules  ui-pnp' /etc/shinken/modules/webui2.cfg
+
+
+sudo /etc/init.d/npcd restart
+sudo /etc/init.d/shinken restart
