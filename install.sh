@@ -107,50 +107,8 @@ sudo cat > /etc/shinken/hostgroups/$nom.cfg << EOF
     alias               $nom
     members             *
 }
-define service {
-    service_description     CPU Usage
-    check_command           check_ncpa!-t 'public' -P 5693 -M cpu/percent -w 80 -c 90 -q 'aggregate=avg'
-    max_check_attempts      5
-    check_interval          5
-    hostgroup_name          $nom
-    host_name           !Raspberry-$nom
-    retry_interval          1
-    check_period            24x7
-    notification_interval   60
-    notification_period     24x7
-    register                1
-}
-
-define service {
-    service_description     Memory Usage
-    check_command           check_ncpa!-t 'public' -P 5693 -M memory/virtual -w 80 -c 90 -u G
-    max_check_attempts      5
-    check_interval          5
-    retry_interval          1
-    check_period            24x7
-    notification_interval   60
-    hostgroup_name          $nom
-    host_name           !Raspberry-$nom
-    notification_period     24x7
-     register                1
-}
-
-define service {
-    service_description     Disk Usage
-    check_command           check_ncpa!-t 'public' -M 'disk/logical/C:|/free' --warning 25: --critical 10: -u G
-    max_check_attempts      5
-    check_interval          5
-    retry_interval          1
-    hostgroup_name          $nom
-    host_name           !Raspberry-$nom
-    check_period            24x7
-    notification_interval   60
-    notification_period     24x7
-    register                1
-}
 EOF
 
-#!/bin/bash
 
 sudo touch /etc/shinken/commands/check_ncpa.cfg
 sudo cat > /etc/shinken/commands/check_ncpa.cfg << EOF
@@ -159,6 +117,15 @@ define command {
     command_line    \$USER1$/check_ncpa.py -H \$HOSTADDRESS$ \$ARG1$
 }
 EOF
+
+sudo touch /etc/shinken/commands/check_hpjd.cfg
+sudo cat > /etc/shinken/commands/check_hpjd.cfg << EOF
+define command {
+    command_name   check_hpjd 
+    command_line   \$USER1$/check_hpjd  -H $HOSTADDRESS$
+}
+EOF
+
 
 touch /etc/shinken/nom
 echo $nom >> /etc/shinken/nom
