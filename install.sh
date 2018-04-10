@@ -125,7 +125,7 @@ sudo touch /etc/shinken/commands/check_hpjd.cfg
 sudo cat > /etc/shinken/commands/check_hpjd.cfg << EOF
 define command {
     command_name   check_hpjd 
-    command_line   \$USER1$/check_hpjd  -H $HOSTADDRESS$
+    command_line   \$USER1$/check_hpjd  -H \$HOSTADDRESS$
 }
 EOF
 
