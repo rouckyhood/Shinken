@@ -171,3 +171,4 @@ sudo sed -i '90i    modules  ui-pnp' /etc/shinken/modules/webui2.cfg
 
 sudo /etc/init.d/npcd restart
 sudo /etc/init.d/shinken restart
+sudo systemctl restart apache2
