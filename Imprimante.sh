@@ -13,12 +13,12 @@ define host{
     realm           $nomentite
 }
 define service{
-    use                   generic-service        ; Inherit values from a template
-    host_name             $nom-$nomentite             ; The name of the host the service is associated with
-    service_description   Status         ; The service description
-    check_command         check_hpjd   ; The command used to monitor the service
-    normal_check_interval 10  ; Check the service every 10 minutes under normal conditions
-    retry_check_interval  1   ; Re-check the service every minute until its final/hard state is determined
+    use                   generic-host
+    host_name             $nom-$nomentite
+    service_description   Status
+    check_command         check_hpjd
+    normal_check_interval 3
+    retry_check_interval  1
 }
 
 EOF
