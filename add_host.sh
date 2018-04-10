@@ -7,7 +7,7 @@ sudo touch /etc/shinken/hosts/$nom.cfg
 sudo cat > /etc/shinken/hosts/$nom.cfg << EOF
 
 define host{
-    use             windows
+    use             generic-host
     host_name       $nom-$nomentite
     address         $ip
     realm           $nomentite
