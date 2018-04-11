@@ -1,6 +1,3 @@
-sudo chmod o+x install.sh
-
-
 #!/bin/bash
 
 read -p 'Entrez le nom de l entité : ' nom
