@@ -1,7 +1,7 @@
 #!/bin/bash
 
+## demande du nom de l'entité où va être installer Shinken
 read -p 'Entrez le nom de l entité : ' nom
-myip=$(ip route get 8.8.8.8 | sed -n '/src/{s/.*src *//p;q}')
 
 ## Mise à jour
 sudo apt-get update -y
