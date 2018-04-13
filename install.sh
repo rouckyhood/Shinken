@@ -1,6 +1,7 @@
 #!/bin/bash
 
 read -p 'Entrez le nom de l entité : ' nom
+myip=$(ip route get 8.8.8.8 | sed -n '/src/{s/.*src *//p;q}')
 
 #sudo apt-get update -y
 #sudo apt-get dist-upgrade -y
@@ -20,6 +21,8 @@ sudo shinken install npcdmod
 sudo shinken install livestatus
 sudo apt-get install mongodb -y
 sudo pip install pymongo requests arrow bottle==0.12.8
+sudo pip install alignak_backend_client
+sudo pip install passlib
 sudo sed -i -e 's/    modules/    modules webui2,livestatus,npcdmod/g' /etc/shinken/brokers/broker-master.cfg
 
 
@@ -95,17 +98,36 @@ sudo echo "realm_name       $nom" >> /etc/shinken/realms/all.cfg
 sudo echo "default 1" >> /etc/shinken/realms/all.cfg
 sudo echo "}" >> /etc/shinken/realms/all.cfg 
 
+
 sudo sed -i '4d' /etc/shinken/hosts/localhost.cfg
+sudo sed -i '5d' /etc/shinken/hosts/localhost.cfg
 sudo sed -i '4i                host_name    Raspberry-'$nom'' /etc/shinken/hosts/localhost.cfg
-sudo sed -i '6i                realm '$nom'' /etc/shinken/hosts/localhost.cfg
+sudo sed -i '5i                address     '$myip'' /etc/shinken/hosts/localhost.cfg
+sudo sed -i '5i                realm '$nom'' /etc/shinken/hosts/localhost.cfg
+sudo sed -i '6i                _SNMPCOMMUNITY public' /etc/shinken/hosts/localhost.cfg
 
 
-sudo touch /etc/shinken/hostgroups/$nom.cfg
-sudo cat > /etc/shinken/hostgroups/$nom.cfg << EOF
- define hostgroup{
-    hostgroup_name      $nom
-    alias               $nom
-    members             *
+sudo cat >> /etc/shinken/hosts/localhost.cfg << EOF
+define service {
+ host_name Raspberry-$nom
+ service_description Cpu
+ check_command check_snmp_load!public!-f -w 3,3,2 -c 4,4,3 -T netsl
+     normal_check_interval 3
+    retry_check_interval  1
+}
+define service {
+ host_name Raspberry-$nom
+ service_description Disque
+ check_command check_snmp_storage!public!-f -m / -r -w 80% -c 90%
+     normal_check_interval 3
+    retry_check_interval  1
+}
+define service {
+ host_name Raspberry-$nom
+ service_description Memoire
+ check_command check_snmp_mem!public!-f -w 99,70 -c 100,85
+     normal_check_interval 3
+    retry_check_interval  1
 }
 EOF
 
@@ -122,21 +144,40 @@ sudo touch /etc/shinken/commands/check_hpjd.cfg
 sudo cat > /etc/shinken/commands/check_hpjd.cfg << EOF
 define command {
     command_name   check_hpjd 
-    command_line   \$USER1$/check_hpjd  -H \$HOSTADDRESS$
+    command_line   \$USER1$/check_hpjd -H \$HOSTADDRESS$
 }
 EOF
+
+sudo touch /etc/shinken/commands/check_snmp_load.cfg
+sudo cat > /etc/shinken/commands/check_snmp_load.cfg << EOF
+define command{
+ command_name check_snmp_load
+ command_line \$USER1$/check_snmp_load.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
+}
+EOF
+
+sudo touch /etc/shinken/commands/check_snmp_storage.cfg
+sudo cat > /etc/shinken/commands/check_snmp_storage.cfg << EOF
+define command{
+ command_name check_snmp_storage
+ command_line \$USER1$/check_snmp_storage.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
+}
+EOF
+
+sudo touch /etc/shinken/commands/check_snmp_mem.cfg
+sudo cat > /etc/shinken/commands/check_snmp_mem.cfg << EOF
+define command{
+ command_name check_snmp_mem
+ command_line \$USER1$/check_snmp_mem.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
+}
+EOF
+
 
 
 touch /etc/shinken/nom
 echo $nom >> /etc/shinken/nom
 
-sudo systemctl restart shinken-arbiter.service
-sudo systemctl restart shinken-poller.service
-sudo systemctl restart shinken-reactionner.service
-sudo systemctl restart shinken-scheduler.service
-sudo systemctl restart shinken-broker.service
-sudo systemctl restart shinken-receiver.service
-sudo systemctl restart shinken.service
+
 
 
 sudo apt-get -y install apache2 php php-gd php-xml rrdtool librrds-perl snmp snmpd libpng-dev zlib1g-dev
@@ -165,7 +206,29 @@ sudo shinken install ui-pnp
 sudo sed -i '90d' /etc/shinken/modules/webui2.cfg
 sudo sed -i '90i    modules  ui-pnp' /etc/shinken/modules/webui2.cfg
 
+cd /usr/local/nagios/libexec
+sudo wget http://nagios.manubulon.com/check_snmp_load.pl
+sudo wget http://nagios.manubulon.com/check_snmp_mem.pl
+sudo wget http://nagios.manubulon.com/check_snmp_storage.pl
+sudo chmod 777 check_snmp_*.pl
+sudo apt-get -y install nagios-plugins
+
+sudo sed -i '15d' /etc/snmp/snmpd.conf
+sudo sed -i '15i#agentAddress  udp:127.0.0.1:161' /etc/snmp/snmpd.conf
+sudo sed -i '17iagentAddress udp:161,udp6:[::1]:161' /etc/snmp/snmpd.conf
+sudo sed -i '52d' /etc/snmp/snmpd.conf
+sudo sed -i '52i#rocommunity public  default    -V systemonly' /etc/snmp/snmpd.conf
+sudo sed -i '55irocommunity public localhost' /etc/snmp/snmpd.conf
+
 
 sudo /etc/init.d/npcd restart
-sudo /etc/init.d/shinken restart
+sudo systemctl restart shinken-arbiter.service
+sudo systemctl restart shinken-poller.service
+sudo systemctl restart shinken-reactionner.service
+sudo systemctl restart shinken-scheduler.service
+sudo systemctl restart shinken-broker.service
+sudo systemctl restart shinken-receiver.service
+sudo systemctl restart shinken.service
 sudo systemctl restart apache2
+sudo systemctl restart snmpd
+
