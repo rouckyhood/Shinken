@@ -4,9 +4,9 @@
 read -p 'Entrez le nom de l entité : ' nom
 
 ## Mise à jour
-sudo apt-get update -y
-sudo apt-get dist-upgrade -y
-sudo apt-get autoremove
+#sudo apt-get update -y
+#sudo apt-get dist-upgrade -y
+#sudo apt-get autoremove
 
 ## paquets nécessaire à l'install de Shinken
 sudo apt-get install python-pip python-pycurl python-cherrypy3 nmap git -y
@@ -121,30 +121,6 @@ sudo sed -i '4i                host_name    Raspberry-'$nom'' /etc/shinken/hosts
 sudo sed -i '5i                realm '$nom'' /etc/shinken/hosts/localhost.cfg
 sudo sed -i '5i                _SNMPCOMMUNITY public' /etc/shinken/hosts/localhost.cfg
 
-## ajout des services qui seront checker sur le Raspberry Pi
-sudo cat >> /etc/shinken/hosts/localhost.cfg << EOF
-define service {
- host_name Raspberry-$nom
- service_description Cpu
- check_command check_snmp_load!public!-f -w 3,3,2 -c 4,4,3 -T netsl
-     normal_check_interval 3
-    retry_check_interval  1
-}
-define service {
- host_name Raspberry-$nom
- service_description Disque
- check_command check_snmp_storage!public!-f -m / -r -w 80% -c 90%
-     normal_check_interval 3
-    retry_check_interval  1
-}
-define service {
- host_name Raspberry-$nom
- service_description Memoire
- check_command check_snmp_mem!public!-f -w 99,70 -c 100,85
-     normal_check_interval 3
-    retry_check_interval  1
-}
-EOF
 
 ## ajout de la commande pour les checks ordinateurs
 sudo touch /etc/shinken/commands/check_ncpa.cfg
@@ -164,32 +140,7 @@ define command {
 }
 EOF
 
-## ajout de la commande pour les checks CPU du Raspberry Pi
-sudo touch /etc/shinken/commands/check_snmp_load.cfg
-sudo cat > /etc/shinken/commands/check_snmp_load.cfg << EOF
-define command{
- command_name check_snmp_load
- command_line \$USER1$/check_snmp_load.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
-}
-EOF
 
-## ajout de la commande pour les checks disques du Raspberry Pi
-sudo touch /etc/shinken/commands/check_snmp_storage.cfg
-sudo cat > /etc/shinken/commands/check_snmp_storage.cfg << EOF
-define command{
- command_name check_snmp_storage
- command_line \$USER1$/check_snmp_storage.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
-}
-EOF
-
-## ajout de la commande pour les checks mémoires du Raspberry Pi
-sudo touch /etc/shinken/commands/check_snmp_mem.cfg
-sudo cat > /etc/shinken/commands/check_snmp_mem.cfg << EOF
-define command{
- command_name check_snmp_mem
- command_line \$USER1$/check_snmp_mem.pl -H \$HOSTADDRESS$ -C \$ARG1$ \$ARG2$
-}
-EOF
 
 ## sauvegarde du nom de l'entité qui servira pour les scripts d'install d'hôtes
 touch /etc/shinken/nom
@@ -224,23 +175,6 @@ sudo shinken install ui-pnp
 sudo sed -i '90d' /etc/shinken/modules/webui2.cfg
 sudo sed -i '90i    modules  ui-pnp' /etc/shinken/modules/webui2.cfg
 
-## téléchargement des checks SNMP
-cd /usr/local/nagios/libexec
-sudo wget http://nagios.manubulon.com/check_snmp_load.pl
-sudo wget http://nagios.manubulon.com/check_snmp_mem.pl
-sudo wget http://nagios.manubulon.com/check_snmp_storage.pl
-sudo chmod 777 check_snmp_*.pl
-## installation des plugins Nagios manquants pour les checks SNMP
-sudo apt-get -y install nagios-plugins
-
-## configuration du SNMP
-sudo sed -i '15d' /etc/snmp/snmpd.conf
-sudo sed -i '15i#agentAddress  udp:127.0.0.1:161' /etc/snmp/snmpd.conf
-sudo sed -i '17iagentAddress udp:161' /etc/snmp/snmpd.conf
-sudo sed -i '52d' /etc/snmp/snmpd.conf
-sudo sed -i '52i#rocommunity public  default    -V systemonly' /etc/snmp/snmpd.conf
-sudo sed -i '55irocommunity public localhost' /etc/snmp/snmpd.conf
-
 ## redémarrage des services
 sudo /etc/init.d/npcd restart
 sudo systemctl restart shinken-arbiter.service
@@ -251,5 +185,3 @@ sudo systemctl restart shinken-broker.service
 sudo systemctl restart shinken-receiver.service
 sudo systemctl restart shinken.service
 sudo systemctl restart apache2
-sudo systemctl restart snmpd
-
