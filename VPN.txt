@@ -10,7 +10,7 @@ sudo bash openvpn-install.sh
 
 sudo apt-get install openvpn -y
 cd /etc/openvpn
-sudo wget http://192.168.18.103/1/Bureau2.conf
+sudo wget .conf
 sudo mv client.ovpn client.conf
 sudo nano /etc/default/openvpn
 autostart="all"
