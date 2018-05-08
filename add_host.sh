@@ -1,6 +1,6 @@
 #!/bin/bash
 read -p 'Entrez le nom du poste que vous voulez ajouter : ' nom
-##read -p 'Entrez l adresse IP du poste que vous voulez ajouter : ' ip
+read -p 'Entrez l adresse IP ou le nom FQDN du poste que vous voulez ajouter : ' ip
 
 nomentite=`cat /etc/shinken/nom`
 sudo touch /etc/shinken/hosts/$nom.cfg
@@ -9,8 +9,7 @@ sudo cat > /etc/shinken/hosts/$nom.cfg << EOF
 define host{
     use             generic-host
     host_name       $nom-$nomentite
-    address         $nom
-#    address        $ip
+    address        $ip
     realm           $nomentite
 }
 define service {
