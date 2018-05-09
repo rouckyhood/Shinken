@@ -20,7 +20,7 @@ define service {
     check_interval          5
     retry_interval          1
     check_period            24x7
-    notification_interval   60
+    notification_interval   1440
     notification_period     24x7
     register                1
 }
@@ -33,7 +33,7 @@ define service {
     check_interval          5
     retry_interval          1
     check_period            24x7
-    notification_interval   60
+    notification_interval   1440
     notification_period     24x7
      register                1
 }
@@ -46,7 +46,7 @@ define service {
     check_interval          5
     retry_interval          1
     check_period            24x7
-    notification_interval   60
+    notification_interval   1440
     notification_period     24x7
     register                1
 }
