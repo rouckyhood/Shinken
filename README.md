@@ -4,5 +4,6 @@
   /etc/shinken/contacts/admin.cfg   
 
 ## compte gmail
-  /etc/shinken/commands/notify-host-by-email.cfg
-  /etc/shinken/commands/notify-service-by-email.cfg
+/etc/shinken/commands/notify-host-by-email.cfg
+
+/etc/shinken/commands/notify-service-by-email.cfg
