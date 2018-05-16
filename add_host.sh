@@ -1,15 +1,23 @@
 #!/bin/bash
+
+echo "Combien de hosts voulez-vous ajouter ?"
+read nombre
+done
+ 
+#Du nombre saisi jusqu'a 1 inclus, je vais executer
+for (( i=${nombre}; i>=1; i-- ))
+do
+ 
 read -p 'Entrez le nom du poste que vous voulez ajouter : ' nom
 read -p 'Entrez l adresse IP ou le nom FQDN du poste que vous voulez ajouter : ' ip
 
 nomentite=`cat /etc/shinken/nom`
 sudo touch /etc/shinken/hosts/$nom.cfg
 sudo cat > /etc/shinken/hosts/$nom.cfg << EOF
-
 define host{
     use             generic-host
     host_name       $nom-$nomentite
-    address        $ip
+    address        $ip
     realm           $nomentite
 }
 define service {
@@ -24,7 +32,6 @@ define service {
     notification_period     24x7
     register                1
 }
-
 define service {
     service_description     Memory Usage
         host_name       $nom-$nomentite
@@ -37,7 +44,6 @@ define service {
     notification_period     24x7
      register                1
 }
-
 define service {
     service_description     Disk Usage
         host_name       $nom-$nomentite
@@ -51,5 +57,5 @@ define service {
     register                1
 }
 EOF
-
+done
 sudo systemctl restart shinken
