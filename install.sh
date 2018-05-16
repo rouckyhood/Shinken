@@ -63,6 +63,59 @@ sudo ./configure --with-nagios-user=shinken --with-nagios-group=shinken
 sudo make
 sudo make install
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sudo apt-get -y install libio-socket-ssl-perl libnet-ssleay-perl perl
+cd /tmp/
+sudo wget http://caspian.dotconf.net/menu/Software/SendEmail/sendEmail-v1.56.tar.gz
+sudo tar xvf sendEmail-v1.56.tar.gz
+sudo cp sendEmail-v1.56/sendEmail /usr/local/bin
+sudo touch /var/log/sendEmail
+sudo chmod 666 /var/log/sendEmail
+
+sudo sed -i '1906d' /usr/local/bin/sendEmail
+sudo sed -i '1906i     if (! IO::Socket::SSL->start_SSL($SERVER, SSL_version => "'TLSv1'")) {' /usr/local/bin/sendEmail
+
+
+
+sudo sed -i '4d' /etc/shinken/commands/notify-host-by-email.cfg
+sudo sed -i '4i                command_line /usr/bin/printf "%b" "***** Nagios *****\\n\\nType de notification : $NOTIFICATIONTYPE$\\nHost: $HOSTNAME$\\nState: $HOSTSTATE$\\nAddress: $HOSTADDRESS$\\nInfo: $HOSTOUTPUT$\\n\\nDate/Time: $LONGDATETIME$\\n" | /usr/local/bin/sendEmail -f '$nom'@shinken.lan -s smtp.gmail.com:587 -xu nom_compte_gmail -xp mot_de_passe -u "** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$ **" -t $CONTACTEMAIL$' /etc/shinken/commands/notify-host-by-email.cfg
+sudo sed -i '4d' /etc/shinken/commands/notify-service-by-email.cfg
+sudo sed -i '4i                command_line /usr/bin/printf "%b" "***** Nagios *****\\n\\nNotification Type: $NOTIFICATIONTYPE$\\n\\nService: $SERVICEDESC$\\nHost: $HOSTALIAS$\\nAddress: $HOSTADDRESS$\\nState: $SERVICESTATE$\\n\\nDate/Time: $LONGDATETIME$\\n\\nAdditional Info:\\n\\n$SERVICEOUTPUT$" | /usr/local/bin/sendEmail -f '$nom'@shinken.lan -s smtp.gmail.com:587 -xu nom_compte_gmail -xp mot_de_passe -u "** $NOTIFICATIONTYPE$ Service Alert: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" -t $CONTACTEMAIL$' /etc/shinken/commands/notify-service-by-email.cfg
+
+
+sudo sed -i '22d' /etc/shinken/templates/generic-host.cfg
+sudo sed -i '22i        notification_options            w,d,c,u,r,f' /etc/shinken/templates/generic-host.cfg
+sudo sed -i '24iservice_notification_commands   notify-service-by-email' /etc/shinken/templates/generic-host.cfg
+sudo sed -i '24ihost_notification_commands      notify-host-by-email' /etc/shinken/templates/generic-host.cfg
+
+
+sudo sed -i '7d' /etc/shinken/contacts/admin.cfg
+sudo sed -i '7i    email           contact@gmail.com' /etc/shinken/contacts/admin.cfg
+
+
+
+
+
+
+
+
+
+
+
+
 ## configuration du chemin pour l'uitlisation des plugins Nagios par Shinken
 sudo sed -i '3d' /etc/shinken/resource.d/paths.cfg
 sudo sed -i '3i$NAGIOSPLUGINSDIR$=/usr/local/nagios/libexec' /etc/shinken/resource.d/paths.cfg
@@ -131,15 +184,6 @@ define command {
 }
 EOF
 
-## ajout de la commande pour les checks d'imprimantes
-sudo touch /etc/shinken/commands/check_hpjd.cfg
-sudo cat > /etc/shinken/commands/check_hpjd.cfg << EOF
-define command {
-    command_name   check_hpjd 
-    command_line   \$USER1$/check_hpjd -H \$HOSTADDRESS$
-}
-EOF
-
 
 
 ## sauvegarde du nom de l'entité qui servira pour les scripts d'install d'hôtes
@@ -185,3 +229,4 @@ sudo systemctl restart shinken-broker.service
 sudo systemctl restart shinken-receiver.service
 sudo systemctl restart shinken.service
 sudo systemctl restart apache2
+
